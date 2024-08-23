@@ -19,7 +19,7 @@ export class User {
     example: new Date().toISOString(),
     required: false,
   })
-  @Prop({ type: Date })
+  @Prop({ type: Date, required: true })
   birthDate: Date;
 
   @ApiResponseProperty()
@@ -31,7 +31,7 @@ export class User {
     example: 'johnsmith@nestjs.com',
     required: false,
   })
-  @Prop()
+  @Prop({ required: true })
   email: string;
 
   @ApiProperty({
@@ -39,10 +39,10 @@ export class User {
     example: 'John',
     required: false,
   })
-  @Prop()
+  @Prop({ required: true })
   firstName: string;
 
-  @Prop({ type: Boolean, default: null })
+  @Prop({ type: Boolean, default: false })
   isDeleted: boolean;
 
   @ApiProperty({
@@ -50,11 +50,11 @@ export class User {
     example: 'Smith',
     required: false,
   })
-  @Prop()
+  @Prop({ required: true })
   lastName: string;
 
   @ApiProperty({ required: false })
-  @Prop()
+  @Prop({ required: true })
   marketingSource: string;
 
   @ApiProperty({ required: false })
@@ -66,7 +66,7 @@ export class User {
     example: 'DQL',
     required: false,
   })
-  @Prop()
+  @Prop({ required: true })
   status: string;
 
   @ApiResponseProperty()

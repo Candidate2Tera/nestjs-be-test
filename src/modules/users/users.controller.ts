@@ -22,9 +22,11 @@ import {
 } from '@nestjs/swagger';
 import { Types } from 'mongoose';
 import { diskStorage } from 'multer';
+import { ApiOkResponsePaginated } from 'src/decorators/api-ok-response-paginated.decorator';
 import { ParseMongoObjectIdPipe } from 'src/pipes/parse-mongo-object-id.pipe';
 import { CsvParser } from 'src/providers/csv-parser.provider';
 import { CreateUserDto } from './dto/create-user.dto';
+import { PaginatedResponseDto } from './dto/paginated-response.dto';
 import { QueryUserDto } from './dto/query-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UploadUsersResponseDto } from './dto/upload-users-response.dto';
@@ -40,16 +42,26 @@ export class UsersController {
 
   @Post('/')
   @ApiOperation({ summary: `Create a new user` })
+  @ApiBody({ type: CreateUserDto })
   @ApiOkResponse({ type: User })
   async postUsers(@Body() body: CreateUserDto): Promise<User> {
-    return;
+    return this.usersService.create(body);
   }
 
   @Get('/')
   @ApiOperation({ summary: `Return a list of users` })
-  @ApiOkResponse({ type: [User] })
-  async getUsers(@Query() query: QueryUserDto): Promise<User[]> {
-    return await this.usersService.getModel().find();
+  @ApiOkResponsePaginated(User)
+  async getUsers(
+    @Query() query: QueryUserDto,
+  ): Promise<PaginatedResponseDto<User>> {
+    const data = await this.usersService.find(query);
+    return new PaginatedResponseDto({
+      data,
+      limit: query.limit,
+      page: query.page,
+      sort: query.sort,
+      sortBy: query.sortBy,
+    });
   }
 
   @Patch('/:id')
@@ -60,7 +72,7 @@ export class UsersController {
     @Param('id', ParseMongoObjectIdPipe) id: Types.ObjectId,
     @Body() body: UpdateUserDto,
   ): Promise<User> {
-    return;
+    return this.usersService.update(id, body);
   }
 
   @Delete('/:id')
@@ -70,7 +82,7 @@ export class UsersController {
   async deleteUser(
     @Param('id', ParseMongoObjectIdPipe) id: Types.ObjectId,
   ): Promise<User> {
-    return;
+    return this.usersService.delete(id);
   }
 
   @Post('/upload')
@@ -114,14 +126,8 @@ export class UsersController {
 
     const users = await CsvParser.parse(file.path);
 
-    /**
-     * @todo
-     * Insert users into database
-     */
+    const results = await this.usersService.upload(users);
 
-    return new UploadUsersResponseDto({
-      failedCount: 0,
-      successCount: 0,
-    });
+    return new UploadUsersResponseDto(results);
   }
 }
